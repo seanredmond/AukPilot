@@ -7,6 +7,9 @@ Created by Sean Redmond on 2011-04-20.
 Copyright (c) 2011 Sean Redmond. All rights reserved.
 """
 
+__author__ =  'Sean Redmond'
+__version__=  '0.1'
+
 import urllib
 import httplib
 import simplejson as json
@@ -78,7 +81,7 @@ class AukPilot(AukPilotBase):
         else:
             params = {'users': users}
         data = self._get('users/show', **params)
-        return [User(self.KEY, d) for d in data['users']] 
+        return [User(d, self.KEY) for d in data['users']] 
 
 class User(AukPilotBase):
     def __init__(self, data, key):
@@ -92,11 +95,37 @@ class User(AukPilotBase):
             self._data = data
         else:
             self._data = self._get('users/show', users=data)['users'][0]
-
+            
     def name(self):
-        return self.twitter_screen_name
+        """Return the user's twitter screen name"""
+        return self._data['twitter_screen_name']
+        
+    def id(self):
+        """Return the user's twitter id"""
+        return self._data['twitter_id']
+
+    def klout(self):
+        """Return the user's klout score (as a float)"""
+        return self._data['score']['kscore']
+        
+    def true_reach(self):
+        """Return the user's true reach (as in int)"""
+        return self._data['score']['true_reach']
+        
+    def amplification(self):
+        """Return the user's amplification score (as a float)"""
+        return self._data['score']['amplification_score']
+        
+    def network(self):
+        """Return the user's network score (as a float)"""
+        return self._data['score']['network_score']
+        
+    def classification(self):
+        """Return the user's klout classification"""
+        return self._data['score']['kclass']
         
     def topics(self, **kwargs):
+        """Return a list of topics in which the user is most active"""
         if self._topics is None:
             data = self._get('users/topics', users=self.name())
             if data['users']:
@@ -106,6 +135,7 @@ class User(AukPilotBase):
         return self._topics
         
     def influencers(self):
+        """Return a list of users who influence this user"""
         if self._influencers is None:
             data = self._get('soi/influenced_by', users=self.name())
             try:
@@ -122,6 +152,7 @@ class User(AukPilotBase):
         return self._influencers
 
     def influencees(self):
+        """Return a list of users whom this user influences"""
         if self._influencees is None:
             try:
                 data = self._get('soi/influencer_of', users=self.name())
