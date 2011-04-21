@@ -4,7 +4,28 @@
 aukpilot.py
 
 Created by Sean Redmond on 2011-04-20.
-Copyright (c) 2011 Sean Redmond. All rights reserved.
+Copyright © 2011 Sean Redmond. All rights reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+AukPilot is an interface to Klout (http://klout.com) API. "Auk Pilot" is an
+anagram of "Klout API." So is "Oak Tulip," but "Auk Pilot" is more fun.
+
+Use of AukPilot requires a Klout API key. You can register and get a key at
+<http://developer.klout.com/member/register>
+
 """
 
 __author__ =  'Sean Redmond'
@@ -15,6 +36,7 @@ import httplib
 import simplejson as json
 
 class AukPilotBase(object):
+    """Base class for AukPilot objects"""
     API = "api.klout.com"
     VER = 1
     FORMAT = 'json'
@@ -22,11 +44,18 @@ class AukPilotBase(object):
     CONN = None
 
     def __init__(self, key):
+        """Initialize the AukPilotBase object.
+        
+        Arguments:
+        key -- Your Klout API key.
+            
+        """
         self.KEY = key
         self.CONN = httplib.HTTPConnection(self.API)
 
 
     def _get(self, url, **kwargs):
+        """Fetch the data."""
         self.CONN.request('GET', self._url(url, **kwargs))
         resp = self.CONN.getresponse()
         data = resp.read()
@@ -45,14 +74,14 @@ class AukPilotBase(object):
                                  urllib.unquote(urllib.urlencode(kwargs)))
 
 class AukPilot(AukPilotBase):
-    """ 
-    Interface to Klout (http://klout.com) API
-    
-    Auk Pilot is an anagram of Klout API. So is Oak Tulip, but Auk Pilot
-    is more fun.
-    """
-        
+    """Generic connection object."""
     def __init__(self, key):
+        """Initialize the AukPilot object.
+        
+        Arguments:
+        key -- Your Klout API key.
+            
+        """
         super(AukPilot, self).__init__(key)
         
         
@@ -76,6 +105,16 @@ class AukPilot(AukPilotBase):
         return  [(r['twitter_screen_name'], r['kscore']) for r in data['users']] 
 
     def users(self, users):
+        """Return klout data for one or more users.
+
+        Arguments:
+        users -- A list or tuple of containing user names or comma-delimited 
+        list string containing user names.
+
+        Returns:
+        A list aukpilot.User objects.
+
+        """
         if isinstance(users, (list, tuple)):
             params = {'users': ','.join(users)}
         else:
@@ -84,7 +123,22 @@ class AukPilot(AukPilotBase):
         return [User(d, self.KEY) for d in data['users']] 
 
 class User(AukPilotBase):
+    """Container for Klout user data."""
+
     def __init__(self, data, key):
+        """Initialize the user.
+
+        Arguments:
+        data -- Either a dict or a string.
+        If a dict is passed it must containing the data to be stored (for 
+        instance the results of a call to <users/show>) 
+        If a string is passed it will be used a username to fetch the
+        data.
+        
+        key -- Your Klout API key.
+        
+        """
+
         super(User, self).__init__(key)
         self._topics = None
         self._influencers = None
@@ -124,6 +178,14 @@ class User(AukPilotBase):
         """Return the user's klout classification"""
         return self._data['score']['kclass']
         
+    def delta_1day(self):
+        """Return the change in the user's klout in the last day (float)"""
+        return self._data['score']['delta_1day']
+
+    def delta_5day(self):
+        """Return the change in the user's klout in the last day (float)"""
+        return self._data['score']['delta_5day']
+
     def topics(self, **kwargs):
         """Return a list of topics in which the user is most active"""
         if self._topics is None:
