@@ -1,0 +1,71 @@
+AukPilot is an interface to Klout (http://klout.com) API. "Auk Pilot" is an
+anagram of "Klout API." So is "Oak Tulip," but "Auk Pilot" is more fun.
+
+Use of AukPilot requires a Klout API key. You can register and get a key at
+<http://developer.klout.com/member/register>
+
+
+Examples:
+
+>>> # Initialize the connection
+>>> import aukpilot
+>>> ap = aukpilot.AukPilot('[your API key]')
+
+>>> # Get a user's Klout score
+>>> ap.scores('rdmond')
+[(u'rdmond', 43.380000000000003)]
+
+>>> # Get multiple user's scores by passing a list or tuple of user names
+>>> ap.scores(('rdmond', 'Klout'))
+[(u'rdmond', 43.380000000000003), (u'klout', 73.310000000000002)]
+
+>>> ap.scores(['rdmond', 'Klout', 'Guggenheim'])
+[(u'rdmond', 43.380000000000003), (u'klout', 73.310000000000002), (u'guggenheim', 68.790000000000006)]
+
+>>> # Or get User objects
+>>> ap.users('rdmond')
+[<aukpilot.User object at 0x1006bcb90>]
+
+>>> ap.users(['rdmond', 'Klout', 'Guggenheim'])
+[<aukpilot.User object at 0x1006bce10>, <aukpilot.User object at 0x1006bcd50>, <aukpilot.User object at 0x1006bcf50>]
+
+>>> # Retrieve individual users
+>>> user = aukpilot.User('Guggenheim', '[your API key]')
+
+>>> user.name()
+u'guggenheim'
+
+>>> user.id()
+u'12804422'
+
+>>> user.klout()
+68.790000000000006
+
+>>> user.true_reach()
+126031
+
+>>> user.amplification()
+50.740000000000002
+
+>>> user.network()
+74.209999999999994
+
+>>> user.classification()
+u'Thought Leader'
+
+>>> user.delta_1day()
+0.29999999999999999
+
+>>> user.delta_5day()
+0.20000000000000001
+
+>>> user.topics()
+[u'Art', u'Museums', u'Design']
+
+>>> user.influencers()
+[u'5easypieces', u'MuseumModernArt', u'museumnerd', u'kim', u'mashable']
+
+>>> user = aukpilot.User('Klout', '[your API key]')
+>>> user.influencees()
+[u'webdice', u'richandcreamy', u'ZelkovaVC', u'ashleyjacober', u'fanpagelist']
+
