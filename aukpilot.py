@@ -56,8 +56,9 @@ class AukPilotBase(object):
 
     def _get(self, url, **kwargs):
         """Fetch the data."""
-        self.CONN.request('GET', self._url(url, **kwargs))
-        resp = self.CONN.getresponse()
+        conn = httplib.HTTPConnection(self.API)
+        conn.request('GET', self._url(url, **kwargs))
+        resp = conn.getresponse()
         data = resp.read()
         try:
             if resp.status == 200:
@@ -119,7 +120,14 @@ class AukPilot(AukPilotBase):
             params = {'users': ','.join(users)}
         else:
             params = {'users': users}
-        data = self._get('users/show', **params)
+        try:
+            data = self._get('users/show', **params)
+        except AukPilotRequestError, e:
+            if e.value == 404:
+                raise AukPilotAccountError('Account(s) %s not found' % 
+                    (params['users']))
+            else:
+                raise e
         return [User(d, self.KEY) for d in data['users']] 
 
 class User(AukPilotBase):
@@ -148,7 +156,13 @@ class User(AukPilotBase):
         if isinstance(data, dict):
             self._data = data
         else:
-            self._data = self._get('users/show', users=data)['users'][0]
+            try:
+                self._data = self._get('users/show', users=data)['users'][0]
+            except AukPilotRequestError, e:
+                if e.value == 404:
+                    raise AukPilotAccountError('User %s not found' % data)
+                else:
+                    raise e
             
     def name(self):
         """Return the user's twitter screen name"""
@@ -246,5 +260,8 @@ class AukPilotError(Exception):
         return repr(self.value)
 
 class AukPilotRequestError(AukPilotError):
+    pass
+    
+class AukPilotAccountError(AukPilotError):
     pass
 
